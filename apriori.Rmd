@@ -1,0 +1,131 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*.
+
+```{r}
+
+library(readxl)
+library(arules)
+library(dplyr)
+
+```
+
+```{r}
+df <- read_excel("C:\\Users\\diego\\Documentos\\python\\data\\graduados-superior-2023.xlsx", sheet=1)
+df <- df %>% select(-AÑO, -Edad, -CARRERA)
+```
+
+```{r}
+# convertir los valores a factores/categorias
+df <- data.frame(lapply(df, as.factor))
+transacciones <- as(df, "transactions")
+inspect(transacciones[1:5])
+```
+
+```{r}
+reglas <- apriori(transacciones, parameter=list(supp=0.005, conf=0.8))
+```
+
+```{r}
+#inspect(sort(reglas, by = "lift")) # para numeros
+
+
+
+rhs_labels <- labels(rhs(reglas))
+inspect(reglas[order(rhs_labels)])
+
+
+
+```
+
+```{r}
+"-------------------------------------REGLA--------------------------------------
+ --------------------------------------------------------------------------------"
+"     {Departamento=Guatemala,                                                      
+       Sexo=Mujer,                                                                  
+       Grupos_Quinquenales=20 a 24,                                            
+       Sector=Privado,                                                              
+       Pueblo_Pertenencia=Ladino}   
+       
+=> {Nivel_Educativo=Licenciatura} 0.02330901  0.8824066 0.02641528  1.536304   968"
+"-----------------------------------EXPLICACIÓN------------------------------------"
+
+"
+Que se tenga el nivel de licenciatura se debe a
+#  Estar en un área urbana con acceso más cercano a universidades.
+#  La edad coincide con la terminación de una carrera universitaria.
+#  Cada vez son más mujeres las que terminan una carrera.
+#  El sector privado tiene preferencias hacia los profecionales.
+#  El pueblo al que pertenece ha tenido historicamente mayor acceso a la educación.
+  
+  por eso coincide en que su nivel educativo sea licenciatura
+"
+
+
+
+"-------------------------------------REGLA--------------------------------------
+ --------------------------------------------------------------------------------"
+"
+      {Sexo=Mujer,                                     
+       Grupos_Quinquenales=20 a 24,                       
+       Sector=Privado,                                         
+       Pueblo_Pertenencia=Maya}  
+       
+=> {Nivel_Educativo=Técnico}      0.009944858  0.8568465 0.011606347  3.189958   413
+"
+"-----------------------------------EXPLICACIÓN------------------------------------"
+"
+Que se tenga el nivel de Técnico se debe a
+#  En los últimos años la cantidad de universitarios ha crecido mucho, las             oportunidades en general para los jovenes son mayores que los jovenes de hace       unas   décadas, por lo que coincide en que la edad sea entre 20 a 24.
+#  En todo tipo de educación las mujeres han estado dominando.
+#  Sector privado aúnque no sea profeciónal, tiene un titulo que la acredita, algo     que es muy valorado en el sector privado.
+#  Al no especificar el departamento de procedencia se trata de un valor general,
+   las mujeres en general llegan a un nivel técnico y en mayor medida en el            departamento de guatemala a una Licenciatura.
+#  El pueblo al que pertenece no tiene una gran concentración en áreas urbanas.
+#  Un técnico requiere menos tiempo y costo que una licenciatura.
+  
+  por eso coincide en que su nivel educativo sea Técnico
+"
+
+
+
+
+
+
+
+
+
+
+"-------------------------------------REGLA--------------------------------------
+ --------------------------------------------------------------------------------"
+"
+       {Nivel_Educativo=Maestría,
+       Sexo=Mujer,                                        
+       Grupos_Quinquenales=30 a 34}                            
+=> {Sector=Privado}               0.01813191  0.8027719 0.02258663  1.124661   753
+"
+"-----------------------------------EXPLICACIÓN------------------------------------"
+"
+Que se tenga el nivel de Privado se debe a
+#   los que tienen una maestría generalmente buscan trabajos especializados, que        suelen estar más    presentes en empresas privadas.
+#   Este detalle creo que no es tan importante para que pertenezca al sector privado     pero puede ser relevante por la cantidad de mujeres que han podido terminar una     maestría.
+#   Por la edad, debe de tener cierta experiencia que junto a la maestía da un plus     para que las empresas privadas quieran pagar más que sectores públicos.
+
+  por eso coincide en que su Sector sea Privado
+"
+
+
+
+
+
+
+
+
+
+
+```
