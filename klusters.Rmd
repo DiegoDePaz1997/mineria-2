@@ -1,0 +1,98 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+#install.packages('arules')
+#install.packages('ggplot2')
+# https://borgelt.net/fim4r.html
+library(readr)
+library(dplyr)
+library(tidyr)
+library(forcats)
+library(arules)
+library(ggplot2)
+df <- read_csv("C:\\Users\\diego\\Documentos\\python\\data\\violencia familiar.csv", show_col_types = FALSE)
+```
+```{r}
+df
+```
+
+```{r}
+cols <- c("HEC_DIA", "HEC_MES", "HEC_DEPTO", "HEC_DEPTOMCPIO", "QUIEN_REPORTA", "VIC_SEXO", "VIC_EDAD", "TOTAL_HIJOS", "VIC_ALFAB", "VIC_ESCOLARIDAD", "VIC_EST_CIV", "VIC_NACIONAL", "VIC_TRABAJA", "AGR_SEXO",  "AGR_EDAD", "AGR_ALFAB", "AGR_ESCOLARIDAD", "AGR_EST_CIV", "AGR_GURPET", "AGR_TRABAJA", "AGR_EDAD")
+df <- df[ , names(df) %in% cols]
+```
+
+
+
+
+```{r}
+reglas_fp = fim4r(df, method="fpgrowth", target="rules", supp=.2, conf=.8)
+df2 = as(reglas_fp, "data.frame")
+
+```
+```{r}
+df2
+```
+
+
+```{r}
+cols <- c("HEC_DIA", "HEC_MES", "HEC_DEPTO", "HEC_DEPTOMCPIO", "QUIEN_REPORTA", "VIC_SEXO", "VIC_EDAD", "TOTAL_HIJOS", "VIC_ALFAB", "VIC_ESCOLARIDAD", "VIC_EST_CIV", "VIC_NACIONAL", "VIC_TRABAJA", "AGR_SEXO",  "AGR_EDAD", "AGR_ALFAB", "AGR_ESCOLARIDAD", "AGR_EST_CIV", "AGR_GURPET", "AGR_TRABAJA", "AGR_EDAD")
+```
+
+
+```{r}
+table(df[, 'AGR_ESCOLARIDAD'])
+```
+
+
+```{r}
+df_cl = df[, c('AGR_ESCOLARIDAD', 'HEC_DEPTO')]
+df_cl[is.na(df_cl)] = -1
+df_cl <- subset(df_cl, HEC_DEPTO != 99)
+df_cl <- subset(df_cl, AGR_ESCOLARIDAD != 99)
+
+cluster = kmeans(df_cl, centers=5)
+table(cluster$cluster)
+```
+
+
+```{r}
+ggplot(df_cl, aes(x=AGR_ESCOLARIDAD, y=HEC_DEPTO, color=as.factor(cluster$cluster))) +
+  geom_point(alpha = 1/100) +
+  geom_point(data=as.data.frame(cluster$centers), aes(x=AGR_ESCOLARIDAD, y=HEC_DEPTO), color="black", size=4) +
+  labs(title="departamento del hecho vs la escolaridad del agresor")
+
+as.data.frame(cluster$centers)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
