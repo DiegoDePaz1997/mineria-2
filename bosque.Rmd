@@ -1,0 +1,123 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+
+```{r}
+# install.packages("rpart")
+# install.packages("rpart.plot")
+# install.packages("randomForest")
+
+library('randomForest')
+library('rpart')
+library('rpart.plot')
+library('readxl')
+```
+
+```{r}
+df <- read.csv("C:\\Users\\diego\\Desktop\\73875737-52c9-41b3-accf-37b44e534bec.csv")
+no = c(
+ 'VIC_DEDICA',
+ 'TIPO_DISCAQ',
+ 'INST_DONDE_DENUNCIO',
+ 'AGR_OCUP',
+ 'AGR_DEDICA',
+ 'ORGANISMO_JURISDICCIONAL',
+ 'CONDUCENTE',
+ 'LEY_APLICABLE',
+ 'ARTICULOVIF1',
+ 'ARTICULOVIF2',
+ 'ARTICULOVIF3',
+ 'ARTICULOVIF4',
+ 'ARTICULOVCM1',
+ 'ARTICULOVCM2',
+ 'ARTICULOVCM3',
+ 'ARTICULOVCM4',
+ 'ARTICULOCODPEN1',
+ 'ARTICULOCODPEN2',
+ 'ARTICULOCODPEN3',
+ 'ARTICULOCODPEN4',
+ 'ARTICULOTRAS1',
+ 'ARTICULOTRAS2',
+ 'ARTICULOTRAS3',
+ 'ARTICULOTRAS4',
+ 'MEDIDAS_SEGURIDAD',
+ 'ORGANISMO_REMITE')
+
+df <- df[, !(names(df) %in% no)]
+df <- na.omit(df)
+
+df
+```
+
+
+```{r}
+set.seed(100)
+
+df$factorVIC_OCUP = as.factor(df$VIC_OCUP)
+
+
+df = df[sample(1:nrow(df)), ]
+
+index = sample(1:nrow(df), .8*nrow(df))
+
+train = df[index, ]
+train$factorVIC_OCUP <- droplevels(train$factorVIC_OCUP)
+test = df[-index, ]
+test$factorVIC_OCUP <- droplevels(test$factorVIC_OCUP)
+```
+
+
+
+```{r}
+bosque <- randomForest(factorVIC_OCUP ~
+             VIC_EDAD +
+             AGR_EDAD +
+             VIC_ESCOLARIDAD +
+             VIC_ALFAB,
+               
+               data = train,
+               ntree = 100,
+               mtry = 4)
+
+# rpart.plot(arbol, type=2, extra=0, under=TRUE, fallen.leaves=TRUE, box.palette = 'BuGn', main='Titulo', cex=.5)
+```
+
+
+```{r}
+predicciones <- predict(bosque, test)
+
+matriz_confusion <- table(Real = test$factorVIC_OCUP, Predicción = predicciones)
+
+
+precision_total <- sum(diag(matriz_confusion)) / sum(matriz_confusion)
+cat("La Precisión (Exactitud) del modelo es:", precision_total, "\n")
+```
+
+
+```{r}
+prediccion <- data.frame(
+             VIC_EDAD = c(20),
+             AGR_EDAD = c(50),
+             VIC_ESCOLARIDAD = c(23), 
+             VIC_ALFAB = c(2)
+             )
+             
+             
+resultado <- predict(bosque, prediccion, type="response")
+resultado
+
+```
+
+
+```{r}
+plot(bosque)
+```
+
+
+```{r}
+
+```
